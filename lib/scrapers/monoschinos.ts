@@ -41,23 +41,25 @@ export async function monoschinosSearch(query: string): Promise<AnimeResult[]> {
   const $ = cheerio.load(data)
   const results: AnimeResult[] = []
 
-  $(".shindo a, .row .col-md-4 a, .row .col-md-3 a").each((_, el) => {
+  // Buscamos todos los enlaces que apunten a /anime/ y tengan un h3 (título)
+  $("a").each((_, el) => {
     const href = $(el).attr("href") ?? ""
     if (!href.includes("/anime/")) return
 
-    const id = href.replace(`${BASE}/anime/`, "").replace("/anime/", "").trim()
-    const title = $(el).find("h3").text().trim()
-    
-    // Imagen
-    const img = $(el).find("img").attr("src") || ""
+    const title = $(el).find("h3, .animetitle, .title").text().trim()
+    if (!title) return
 
-    if (title && id) {
+    const id = href.replace(`${BASE}/anime/`, "").replace("/anime/", "").replace(BASE, "").replace(/^\//, "").trim()
+    const image = $(el).find("img").attr("src") || ""
+
+    // Evitar duplicados y resultados vacíos
+    if (id && !results.some(r => r.id === id)) {
       results.push({
         id,
         title,
-        image: img,
+        image,
         type: "Anime",
-        url: href.startsWith("http") ? href : `${BASE}${href}`,
+        url: href.startsWith("http") ? href : `${BASE}${href.startsWith("/") ? "" : "/"}${href}`,
       })
     }
   })
