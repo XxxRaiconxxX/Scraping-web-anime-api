@@ -41,26 +41,25 @@ export async function monoschinosSearch(query: string): Promise<AnimeResult[]> {
   const $ = cheerio.load(data)
   const results: AnimeResult[] = []
 
-  $(".heros .row .col-md-4, .row .col-md-3").each((_, el) => {
-    const a = $(el).find("a")
-    const href = a.attr("href") ?? ""
+  $(".shindo a, .row .col-md-4 a, .row .col-md-3 a").each((_, el) => {
+    const href = $(el).attr("href") ?? ""
     if (!href.includes("/anime/")) return
 
     const id = href.replace(`${BASE}/anime/`, "").replace("/anime/", "").trim()
     const title = $(el).find("h3").text().trim()
     
-    // La imagen suele estar en un div con background-image
-    const style = $(el).find(".anime-card").attr("style") || ""
-    const imgMatch = style.match(/url\(['"]?(.*?)['"]?\)/)
-    const image = imgMatch ? imgMatch[1] : ""
+    // Imagen
+    const img = $(el).find("img").attr("src") || ""
 
-    results.push({
-      id,
-      title,
-      image,
-      type: "Anime",
-      url: href.startsWith("http") ? href : `${BASE}${href}`,
-    })
+    if (title && id) {
+      results.push({
+        id,
+        title,
+        image: img,
+        type: "Anime",
+        url: href.startsWith("http") ? href : `${BASE}${href}`,
+      })
+    }
   })
 
   return results
@@ -72,12 +71,12 @@ export async function monoschinosInfo(animeId: string): Promise<AnimeInfo> {
   const { data } = await axios.get(url, AXIOS_CONFIG)
   const $ = cheerio.load(data)
 
-  const title = $("h1").text().trim()
+  const title = $("h1").first().text().trim()
   const image = $(".anime-image img").attr("src") ?? ""
   const description = $(".sinopsis").text().trim()
 
   const genres: string[] = []
-  $(".genres a").each((_, el) => {
+  $(".genres a, .generos a").each((_, el) => {
     genres.push($(el).text().trim())
   })
 
@@ -85,11 +84,13 @@ export async function monoschinosInfo(animeId: string): Promise<AnimeInfo> {
   const released = $(".year").text().trim() || "N/A"
 
   const episodes: Episode[] = []
-  // En MonosChinos los episodios están en enlaces con clase .ko
-  $("a.ko").each((_, el) => {
+  // En MonosChinos los episodios suelen estar en una lista o grid
+  $("a.ko, .episodios a").each((_, el) => {
     const href = $(el).attr("href") ?? ""
+    if (!href.includes("/ver/")) return
+    
     const id = href.replace(`${BASE}/ver/`, "").replace("/ver/", "").trim()
-    const numberMatch = $(el).find("h2").text().match(/\d+/)
+    const numberMatch = $(el).find("h2, .num").text().match(/\d+/)
     const number = numberMatch ? numberMatch[0] : episodes.length.toString()
 
     episodes.push({
@@ -106,7 +107,7 @@ export async function monoschinosInfo(animeId: string): Promise<AnimeInfo> {
     genres,
     status,
     released,
-    episodes: episodes.reverse(), // Suelen venir del último al primero
+    episodes: episodes.reverse(),
   }
 }
 
