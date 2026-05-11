@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node"
 import { gogoanimeServers } from "../../lib/scrapers/gogoanime"
 import { animeflvServers } from "../../lib/scrapers/animeflv"
+import { monoschinosServers } from "../../lib/scrapers/monoschinos"
 import { ok, fail, handleCors } from "../../lib/utils"
 
 // GET /api/episode/[id]?source=animeflv
@@ -19,6 +20,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     switch (source) {
       case "gogoanime":
         servers = await gogoanimeServers(id)
+        break
+      case "monoschinos":
+        servers = await monoschinosServers(id)
         break
       case "animeflv":
       default:
