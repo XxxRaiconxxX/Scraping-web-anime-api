@@ -35,11 +35,24 @@ export function fail(res: VercelResponse, message: string, status = 500) {
   return res.status(status).json({ success: false, error: message })
 }
 
+// ─── Autenticación ──────────────────────────────────────────────────────────
+export function checkAuth(req: VercelRequest, res: VercelResponse): boolean {
+  const authHeader = req.headers.authorization || ""
+  const token = authHeader.replace("Bearer ", "")
+  const expectedKey = process.env.VITE_ANIME_HUB_API_KEY || "kingdoom-secret-key-2026"
+
+  if (token !== expectedKey) {
+    fail(res, "No autorizado. API Key inválida.", 401)
+    return false
+  }
+  return true
+}
+
 // ─── CORS preflight ──────────────────────────────────────────────────────────
 export function handleCors(req: VercelRequest, res: VercelResponse): boolean {
   res.setHeader("Access-Control-Allow-Origin", "*")
   res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS")
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type")
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization")
 
   if (req.method === "OPTIONS") {
     res.status(200).end()

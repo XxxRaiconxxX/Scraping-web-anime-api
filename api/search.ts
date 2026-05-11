@@ -2,11 +2,12 @@ import type { VercelRequest, VercelResponse } from "@vercel/node"
 import { gogoanimeSearch } from "../lib/scrapers/gogoanime"
 import { animeflvSearch } from "../lib/scrapers/animeflv"
 import { monoschinosSearch } from "../lib/scrapers/monoschinos"
-import { ok, fail, handleCors } from "../lib/utils"
+import { ok, fail, handleCors, checkAuth } from "../lib/utils"
 
 // GET /api/search?q=naruto&source=animeflv
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (handleCors(req, res)) return
+  if (!checkAuth(req, res)) return
 
   const { q, source = "animeflv" } = req.query
 

@@ -2,11 +2,12 @@ import type { VercelRequest, VercelResponse } from "@vercel/node"
 import { gogoanimeRecent } from "../lib/scrapers/gogoanime"
 import { animeflvRecent } from "../lib/scrapers/animeflv"
 import { monoschinosRecent } from "../lib/scrapers/monoschinos"
-import { ok, fail, handleCors } from "../lib/utils"
+import { ok, fail, handleCors, checkAuth } from "../lib/utils"
 
 // GET /api/recent?page=1&type=1&source=animeflv
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (handleCors(req, res)) return
+  if (!checkAuth(req, res)) return
 
   const {
     page = "1",
