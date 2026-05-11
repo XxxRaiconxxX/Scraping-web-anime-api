@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node"
-import { gogoanimeInfo } from "../../../lib/scrapers/gogoanime"
-import { animeflvInfo } from "../../../lib/scrapers/animeflv"
-import { ok, fail, handleCors } from "../../../lib/utils"
+import { gogoanimeInfo } from "../../lib/scrapers/gogoanime"
+import { animeflvInfo } from "../../lib/scrapers/animeflv"
+import { ok, fail, handleCors } from "../../lib/utils"
 
 // GET /api/anime/[id]?source=animeflv
 export default async function handler(req: VercelRequest, res: VercelResponse) {
