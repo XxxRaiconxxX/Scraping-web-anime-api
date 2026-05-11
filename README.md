@@ -1,13 +1,19 @@
-# 🎌 Anime Scraper API
+# 🎌 Anime Scraper API (Kingdoom Edition)
 
-API REST propia deployada en Vercel para scraping de anime.
+API REST optimizada para Vercel diseñada para el ecosistema Kingdoom. Basada en scraping ligero con caching avanzado.
+
+## ✨ Mejoras Kingdoom
+- **Rotación de User-Agents**: Evita bloqueos de Cloudflare.
+- **Vercel Edge Caching**: Peticiones casi instantáneas mediante `s-maxage`.
+- **Soporte Multi-Idioma**: GogoAnime (Inglés) y AnimeFLV (Español).
+- **CORS Habilitado**: Acceso global desde cualquier dominio.
 
 ## Setup
 
 ```bash
 npm install
 npm run dev     # desarrollo local
-npm run deploy  # deploy a producción
+npm run deploy  # deploy a producción (Vercel)
 ```
 
 ## Endpoints
@@ -19,29 +25,9 @@ GET /api/search?q={query}&source={source}
 | Param | Tipo | Default | Descripción |
 |---|---|---|---|
 | `q` | string | — | Término de búsqueda |
-| `source` | string | `gogoanime` | Fuente del scraper |
+| `source` | string | `animeflv` | `animeflv` (ES) o `gogoanime` (EN) |
 
-**Ejemplo:**
-```
-GET /api/search?q=naruto
-```
-```json
-{
-  "success": true,
-  "data": {
-    "source": "gogoanime",
-    "query": "naruto",
-    "results": [
-      {
-        "id": "naruto-shippuden",
-        "title": "Naruto: Shippuden",
-        "image": "https://...",
-        "released": "2007"
-      }
-    ]
-  }
-}
-```
+**Ejemplo:** `/api/search?q=naruto&source=animeflv`
 
 ---
 
@@ -50,95 +36,43 @@ GET /api/search?q=naruto
 GET /api/anime/{id}?source={source}
 ```
 
-**Ejemplo:**
-```
-GET /api/anime/naruto-shippuden
-```
-```json
-{
-  "success": true,
-  "data": {
-    "id": "naruto-shippuden",
-    "title": "Naruto: Shippuden",
-    "description": "...",
-    "genres": ["Action", "Adventure"],
-    "status": "Completed",
-    "totalEpisodes": 500,
-    "episodes": [
-      { "id": "naruto-shippuden-episode-1", "number": "1" }
-    ]
-  }
-}
-```
+**Ejemplo:** `/api/anime/naruto-shippuden?source=animeflv`
 
 ---
 
-### 🎬 Servidores de streaming de un episodio
+### 🎬 Servidores de streaming
 ```
 GET /api/episode/{episodeId}?source={source}
 ```
 
-**Ejemplo:**
-```
-GET /api/episode/naruto-shippuden-episode-1
-```
-```json
-{
-  "success": true,
-  "data": {
-    "episodeId": "naruto-shippuden-episode-1",
-    "servers": [
-      { "name": "vidstreaming", "link": "https://..." },
-      { "name": "gogo", "link": "https://..." }
-    ]
-  }
-}
-```
+**Ejemplo:** `/api/episode/naruto-shippuden-1?source=animeflv`
 
 ---
 
 ### 🆕 Episodios recientes
 ```
-GET /api/recent?page={page}&type={type}
+GET /api/recent?source={source}
 ```
-| Param | Valores | Descripción |
-|---|---|---|
-| `page` | número | Página (default: 1) |
-| `type` | 1, 2, 3 | 1=SUB · 2=DUB · 3=CN |
 
 ---
 
 ## Fuentes disponibles (`source`)
 
-| Valor | Sitio |
-|---|---|
-| `gogoanime` | anitaku.pe |
-
-> Para agregar más fuentes, creá un scraper en `lib/scrapers/` e importalo en cada endpoint.
-
-## Cache
-
-| Endpoint | Cache |
-|---|---|
-| `/api/recent` | 60s |
-| `/api/episode/[id]` | 120s |
-| `/api/search` | 180s |
-| `/api/anime/[id]` | 600s |
+| Valor | Sitio | Idioma |
+|---|---|---|
+| `animeflv` | animeflv.net | Español |
+| `gogoanime` | anitaku.pe | Inglés |
 
 ## Estructura
 
 ```
 anime-api/
-├── api/
-│   ├── search.ts
-│   ├── recent.ts
-│   ├── anime/[id].ts
-│   └── episode/[id].ts
+├── api/                # Handlers de Vercel
 ├── lib/
-│   ├── utils.ts
-│   └── scrapers/
-│       └── gogoanime.ts   ← agregar más acá
+│   ├── utils.ts        # Lógica de headers y cache
+│   └── scrapers/       # Motores de scraping por sitio
 ├── vercel.json
 ├── package.json
 └── tsconfig.json
 ```
+

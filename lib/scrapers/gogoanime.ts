@@ -1,6 +1,6 @@
 import axios from "axios"
 import * as cheerio from "cheerio"
-import { BROWSER_HEADERS } from "../utils"
+import { AXIOS_CONFIG } from "../utils"
 
 const BASE = "https://anitaku.pe"
 const AJAX = "https://ajax.gogocdn.net"
@@ -39,7 +39,7 @@ export interface AnimeInfo {
 // ─── Buscar anime ────────────────────────────────────────────────────────────
 export async function gogoanimeSearch(query: string): Promise<AnimeResult[]> {
   const url = `${BASE}/search.html?keyword=${encodeURIComponent(query)}`
-  const { data } = await axios.get(url, { headers: BROWSER_HEADERS })
+  const { data } = await axios.get(url, AXIOS_CONFIG)
   const $ = cheerio.load(data)
   const results: AnimeResult[] = []
 
@@ -62,7 +62,7 @@ export async function gogoanimeSearch(query: string): Promise<AnimeResult[]> {
 // ─── Info + lista de episodios de un anime ───────────────────────────────────
 export async function gogoanimeInfo(animeId: string): Promise<AnimeInfo> {
   const url = `${BASE}/category/${animeId}`
-  const { data } = await axios.get(url, { headers: BROWSER_HEADERS })
+  const { data } = await axios.get(url, AXIOS_CONFIG)
   const $ = cheerio.load(data)
 
   const title = $(".anime_info_body_bg h1").text().trim()
@@ -87,7 +87,7 @@ export async function gogoanimeInfo(animeId: string): Promise<AnimeInfo> {
   // Fetch de la lista de episodios via endpoint AJAX de gogoanime
   const epRes = await axios.get(
     `${AJAX}/ajax/load-list-episode?ep_start=${epStart}&ep_end=${epEnd}&id=${movieId}&default_ep=0&alias=${alias}`,
-    { headers: BROWSER_HEADERS }
+    AXIOS_CONFIG
   )
   const $ep = cheerio.load(epRes.data)
   const episodes: Episode[] = []
@@ -117,7 +117,7 @@ export async function gogoanimeInfo(animeId: string): Promise<AnimeInfo> {
 // ─── Links de streaming de un episodio ──────────────────────────────────────
 export async function gogoanimeServers(episodeId: string): Promise<Server[]> {
   const url = `${BASE}/${episodeId}`
-  const { data } = await axios.get(url, { headers: BROWSER_HEADERS })
+  const { data } = await axios.get(url, AXIOS_CONFIG)
   const $ = cheerio.load(data)
   const servers: Server[] = []
 
@@ -133,7 +133,7 @@ export async function gogoanimeServers(episodeId: string): Promise<Server[]> {
 // ─── Episodios recientes ──────────────────────────────────────────────────────
 export async function gogoanimeRecent(page = 1, type = 1) {
   const url = `${AJAX}/ajax/page-recent-release.html?page=${page}&type=${type}`
-  const { data } = await axios.get(url, { headers: BROWSER_HEADERS })
+  const { data } = await axios.get(url, AXIOS_CONFIG)
   const $ = cheerio.load(data)
   const results: any[] = []
 
@@ -151,3 +151,4 @@ export async function gogoanimeRecent(page = 1, type = 1) {
 
   return results
 }
+
