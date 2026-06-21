@@ -2,6 +2,7 @@ import type { VercelRequest, VercelResponse } from "@vercel/node"
 import { gogoanimeSearch } from "../lib/scrapers/gogoanime"
 import { animeflvSearch } from "../lib/scrapers/animeflv"
 import { tioanimeSearch } from "../lib/scrapers/tioanime"
+import { veranimeonlineSearch } from "../lib/scrapers/veranimeonline"
 import { ok, fail, handleCors, checkAuth } from "../lib/utils"
 
 // GET /api/search?q=naruto&source=animeflv
@@ -25,6 +26,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       case "tioanime":
       case "monoschinos": // Mantener por compatibilidad temporal
         results = await tioanimeSearch(q)
+        break
+      case "veranimeonline":
+        results = await veranimeonlineSearch(q)
         break
       case "animeflv":
       default:
