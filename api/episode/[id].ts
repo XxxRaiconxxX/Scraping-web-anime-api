@@ -30,6 +30,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       case "veranimeonline":
         servers = await veranimeonlineServers(id)
         break
+      case "animeav1":
+        const { animeav1Servers } = await import("../../lib/scrapers/animeav1")
+        servers = await animeav1Servers(id)
+        break
+      case "jkanime":
+        const { jkanimeServers } = await import("../../lib/scrapers/jkanime")
+        servers = await jkanimeServers(id)
+        break
       case "animeflv":
       default:
         servers = await animeflvServers(id)

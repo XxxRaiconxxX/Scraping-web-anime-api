@@ -30,6 +30,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       case "veranimeonline":
         results = await veranimeonlineSearch(q)
         break
+      case "animeav1":
+        const { animeav1Search } = await import("../lib/scrapers/animeav1")
+        results = await animeav1Search(q)
+        break
+      case "jkanime":
+        const { jkanimeSearch } = await import("../lib/scrapers/jkanime")
+        results = await jkanimeSearch(q)
+        break
       case "animeflv":
       default:
         results = await animeflvSearch(q)
