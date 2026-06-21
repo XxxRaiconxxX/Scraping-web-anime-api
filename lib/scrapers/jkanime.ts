@@ -62,11 +62,11 @@ export async function jkanimeInfo(id: string): Promise<AnimeInfo | null> {
     const { data } = await axios.get(`${BASE_URL}/${id}/`, AXIOS_CONFIG);
     const $ = cheerio.load(data);
 
-    const title = $(".anime__details__title h3").text().trim() || $("h1").text().trim();
+    const title = $(".anime__details__title h3").text().trim() || $(".anime_info h3").text().trim() || $("h1").text().trim();
     if (!title) return null;
 
-    const description = $(".anime__details__text p").first().text().trim() || $(".sinopsis").text().trim();
-    const image = $(".anime__details__pic").attr("data-setbg") || $("img").first().attr("src") || "";
+    const description = $(".anime__details__text p").first().text().trim() || $(".anime_info .scroll").text().trim() || $(".sinopsis").text().trim();
+    const image = $(".anime__details__pic").attr("data-setbg") || $(".anime_pic img").attr("src") || $("img").first().attr("src") || "";
     
     // In jkanime, episodes pagination is requested via ajax
     // But we can extract the last episode number if present
