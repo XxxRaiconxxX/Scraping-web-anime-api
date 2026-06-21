@@ -30,7 +30,7 @@ const BASE_URL = "https://jkanime.net";
 
 export async function jkanimeSearch(query: string): Promise<SearchResult[]> {
   try {
-    const { data } = await axios.get(`${BASE_URL}/buscar/${encodeURIComponent(query)}/1/`, AXIOS_CONFIG);
+    const { data } = await axios.get(`${BASE_URL}/buscar/${encodeURIComponent(query)}/`, AXIOS_CONFIG);
     const $ = cheerio.load(data);
     const results: SearchResult[] = [];
 
