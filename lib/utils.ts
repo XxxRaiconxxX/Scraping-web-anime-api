@@ -18,7 +18,9 @@ export function getHeaders() {
 }
 
 export const AXIOS_CONFIG = {
-  headers: getHeaders(),
+  get headers() {
+    return getHeaders()
+  },
   timeout: 10000, // 10 segundos max para no exceder Vercel
 }
 
@@ -39,7 +41,12 @@ export function fail(res: VercelResponse, message: string, status = 500) {
 export function checkAuth(req: VercelRequest, res: VercelResponse): boolean {
   const authHeader = req.headers.authorization || ""
   const token = authHeader.replace("Bearer ", "")
-  const expectedKey = process.env.VITE_ANIME_HUB_API_KEY || "kingdoom-secret-key-2026"
+  const expectedKey = process.env.ANIME_HUB_API_KEY || process.env.VITE_ANIME_HUB_API_KEY
+
+  if (!expectedKey) {
+    fail(res, "ANIME_HUB_API_KEY no esta configurada en el servidor.", 503)
+    return false
+  }
 
   if (token !== expectedKey) {
     fail(res, "No autorizado. API Key inválida.", 401)
