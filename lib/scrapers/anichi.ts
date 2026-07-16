@@ -65,6 +65,16 @@ function requestOptions(referer = `${BASE}/`) {
   }
 }
 
+function pageRequestOptions() {
+  return {
+    timeout: AXIOS_CONFIG.timeout,
+    headers: {
+      ...AXIOS_CONFIG.headers,
+      Referer: `${BASE}/`,
+    },
+  }
+}
+
 function ajaxHtml(payload: AjaxHtmlPayload, operation: string) {
   const result =
     typeof payload.result === "string"
@@ -138,12 +148,8 @@ export async function anichiSearch(query: string): Promise<AnimeResult[]> {
   return [...results.values()]
 }
 
-export async function anichiInfo(animeId: string): Promise<AnimeInfo> {
-  const id = animeId.trim()
-  if (!id || id.includes("/") || id.includes("..")) throw new Error("ID de AniChi invalido")
-
-  const url = `${BASE}/anime/${encodeURIComponent(id)}`
-  const { data: page } = await axios.get<string>(url, requestOptions(url))
+async function fetchAniChiInfo(id: string, url: string): Promise<AnimeInfo> {
+  const { data: page } = await axios.get<string>(url, pageRequestOptions())
   const $ = cheerio.load(page)
   const title = $("h1.series-title").first().text().trim()
   const image = safeHttpUrl($(".series-intro__poster img").first().attr("src"))
@@ -200,6 +206,19 @@ export async function anichiInfo(animeId: string): Promise<AnimeInfo> {
     totalEpisodes: episodes.length,
     episodes,
     url,
+  }
+}
+
+export async function anichiInfo(animeId: string): Promise<AnimeInfo> {
+  const id = animeId.trim()
+  if (!id || id.includes("/") || id.includes("..")) throw new Error("ID de AniChi invalido")
+
+  const url = `${BASE}/anime/${encodeURIComponent(id)}`
+  try {
+    return await fetchAniChiInfo(id, url)
+  } catch {
+    // ponytail: one retry absorbs transient AniChi HTML/AJAX responses; repeated failures stay visible.
+    return fetchAniChiInfo(id, url)
   }
 }
 

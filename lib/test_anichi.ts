@@ -15,8 +15,14 @@ async function selfCheck() {
   assert.ok(servers.length > 0, "AniChi episode has no servers")
   servers.forEach((server) => assert.match(server.link, /^https?:\/\//))
 
+  const movie = await anichiInfo("black-butler-book-of-the-atlantic-piygp")
+  assert.equal(movie.title, "Black Butler: Book of the Atlantic")
+  assert.equal(movie.episodes.length, 1, "AniChi movie was not normalized as one episode")
+  assert.equal(movie.episodes[0].number, "1")
+  assert.notEqual(movie.description, "Sin sinopsis disponible.")
+
   console.log(
-    `AniChi provider: OK (${results.length} results, ${detail.episodes.length} episodes, ${servers.length} servers)`
+    `AniChi provider: OK (${results.length} results, ${detail.episodes.length} series episodes, ${movie.episodes.length} movie episode, ${servers.length} servers)`
   )
 }
 

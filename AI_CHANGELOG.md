@@ -3,6 +3,12 @@
 Historial de cambios realizados por agentes de IA en este repositorio.
 
 ## 2026-07-16
+- **fix**: Las fichas AniChi usan cabeceras HTML separadas de las llamadas AJAX y reintentan una vez la carga completa ante respuestas transitorias o incompletas.
+- **fix**: La comprobacion e2e incorpora `Black Butler: Book of the Atlantic` y exige que una pelicula se normalice como un episodio con sinopsis disponible.
+- **check**: La prueba en vivo devolvio 12 episodios de serie, 1 episodio de pelicula y 9 servidores; `npx tsc --noEmit -p tsconfig.json` paso limpio.
+- **Riesgo abierto**: El reintento no protege frente a cambios permanentes del HTML o endpoints privados de AniChi.
+- *Firma*: [Codex]
+
 - **feat**: Integracion de `anichi.to` en `lib/scrapers/anichi.ts` con busqueda, ficha, episodios y resolucion tolerante a fallos de hasta 12 servidores por episodio.
 - **feat**: Los endpoints `search.ts`, `anime/[id].ts` y `episode/[id].ts` aceptan ahora `source=anichi` bajo la autenticacion existente.
 - **check**: `lib/test_anichi.ts` comprobo en vivo 5 resultados, 12 episodios y 9 servidores; `npx tsc --noEmit -p tsconfig.json` paso limpio y el audit de produccion reporto 0 vulnerabilidades.
