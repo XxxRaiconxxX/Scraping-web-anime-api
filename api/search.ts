@@ -3,6 +3,7 @@ import { gogoanimeSearch } from "../lib/scrapers/gogoanime"
 import { animeflvSearch } from "../lib/scrapers/animeflv"
 import { tioanimeSearch } from "../lib/scrapers/tioanime"
 import { veranimeonlineSearch } from "../lib/scrapers/veranimeonline"
+import { anichiSearch } from "../lib/scrapers/anichi"
 import { ok, fail, handleCors, checkAuth } from "../lib/utils"
 
 // GET /api/search?q=naruto&source=animeflv
@@ -20,6 +21,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     let results
 
     switch (source) {
+      case "anichi":
+        results = await anichiSearch(q)
+        break
       case "gogoanime":
         results = await gogoanimeSearch(q)
         break

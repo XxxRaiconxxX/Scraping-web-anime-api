@@ -3,6 +3,7 @@ import { gogoanimeInfo } from "../../lib/scrapers/gogoanime"
 import { animeflvInfo } from "../../lib/scrapers/animeflv"
 import { tioanimeInfo } from "../../lib/scrapers/tioanime"
 import { veranimeonlineInfo } from "../../lib/scrapers/veranimeonline"
+import { anichiInfo } from "../../lib/scrapers/anichi"
 import { ok, fail, handleCors, checkAuth } from "../../lib/utils"
 
 // GET /api/anime/[id]?source=animeflv
@@ -20,6 +21,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     let info
 
     switch (source) {
+      case "anichi":
+        info = await anichiInfo(id)
+        break
       case "gogoanime":
         info = await gogoanimeInfo(id)
         break
