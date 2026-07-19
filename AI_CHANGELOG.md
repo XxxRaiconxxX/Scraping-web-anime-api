@@ -2,6 +2,14 @@
 
 Historial de cambios realizados por agentes de IA en este repositorio.
 
+## 2026-07-19
+- **feat**: Migración del scraper de AnimeFLV a su nuevo dominio `https://animeflv.or.at/` ya que el dominio anterior dejó de ofrecer servidores de reproducción.
+- **feat**: Rediseño de selectores y análisis de HTML (búsqueda mediante `?s=`, detalles vía metadatos del tema de WordPress y JSON incrustado `.animeflv-episodes-data`).
+- **feat**: Soporte para la extracción nativa tanto de servidores de streaming (decodificados desde Base64 `data-src` en `.iframe_btn`) como de enlaces de descarga directa (de la tabla de descargas).
+- **feat**: Actualización del endpoint `api/episode/[id].ts` para admitir de forma nativa y retrocompatible objetos estructurados con propiedades `stream` y `download`.
+- **check**: Ejecución exitosa de pruebas automatizadas locales de búsqueda, detalle y servidores/descargas para "black torch" en vivo contra el nuevo dominio.
+- *Firma*: [Antigravity]
+
 ## 2026-07-16
 - **fix**: Las fichas AniChi usan cabeceras HTML separadas de las llamadas AJAX y reintentan una vez la carga completa ante respuestas transitorias o incompletas.
 - **fix**: La comprobacion e2e incorpora `Black Butler: Book of the Atlantic` y exige que una pelicula se normalice como un episodio con sinopsis disponible.
