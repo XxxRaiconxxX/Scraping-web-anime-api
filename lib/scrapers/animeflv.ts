@@ -36,28 +36,46 @@ export interface AnimeInfo {
 
 // ─── Buscar anime ────────────────────────────────────────────────────────────
 export async function animeflvSearch(query: string): Promise<AnimeResult[]> {
-  const url = `${BASE}/?s=${encodeURIComponent(query)}`
-  const { data } = await axios.get(url, AXIOS_CONFIG)
-  const $ = cheerio.load(data)
+  const restUrl = `${BASE}/wp-json/wp/v2/categories?search=${encodeURIComponent(query)}`
+  const { data: categories } = await axios.get(restUrl, AXIOS_CONFIG)
+  if (!Array.isArray(categories)) {
+    return []
+  }
+
   const results: AnimeResult[] = []
 
-  $(".search-series-card").each((_, el) => {
-    const a = $(el).find("a.thumbnail-link")
-    const href = a.attr("href") ?? ""
-    const id = href.split("/anime/").pop()?.replace(/\/$/, "").trim() ?? ""
-    if (!id) return
+  // Fetch archive pages in parallel to scrape poster images
+  await Promise.all(
+    categories.map(async (cat: any) => {
+      // Filter out general category "Anime" (which has id 1 or slug 'anime')
+      if (cat.slug === "anime" || cat.id === 1) return
 
-    const title = $(el).find(".entry-title").text().trim()
-    const image = $(el).find("img.anime-image").attr("src") ?? ""
+      try {
+        const pageUrl = `${BASE}/anime/${cat.slug}/`
+        const { data: html } = await axios.get(pageUrl, AXIOS_CONFIG)
+        const $ = cheerio.load(html)
+        const image = $(".poster-image").attr("src") ?? ""
 
-    results.push({
-      id,
-      title,
-      image,
-      type: "Anime",
-      url: href,
+        results.push({
+          id: cat.slug,
+          title: cat.name,
+          image,
+          type: "Anime",
+          url: pageUrl,
+        })
+      } catch (err: any) {
+        console.error(`[animeflvSearch] Error scraping category ${cat.slug}:`, err.message)
+        // Fallback without image
+        results.push({
+          id: cat.slug,
+          title: cat.name,
+          image: "",
+          type: "Anime",
+          url: `${BASE}/anime/${cat.slug}/`,
+        })
+      }
     })
-  })
+  )
 
   return results
 }

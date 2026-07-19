@@ -7,6 +7,7 @@ Historial de cambios realizados por agentes de IA en este repositorio.
 - **feat**: Rediseño de selectores y análisis de HTML (búsqueda mediante `?s=`, detalles vía metadatos del tema de WordPress y JSON incrustado `.animeflv-episodes-data`).
 - **feat**: Soporte para la extracción nativa tanto de servidores de streaming (decodificados desde Base64 `data-src` en `.iframe_btn`) como de enlaces de descarga directa (de la tabla de descargas).
 - **feat**: Actualización del endpoint `api/episode/[id].ts` para admitir de forma nativa y retrocompatible objetos estructurados con propiedades `stream` y `download`.
+- **fix**: Corrección en `animeflvSearch` implementando búsqueda a través del WP REST API `/wp-json/wp/v2/categories` e iteración paralela de raspado de portadas. Esto resuelve la indexación de búsqueda rota del frontend (`?s=`) del nuevo dominio, permitiendo buscar series del catálogo como `clevatess` o `mushoku` de forma instantánea.
 - **check**: Ejecución exitosa de pruebas automatizadas locales de búsqueda, detalle y servidores/descargas para "black torch" en vivo contra el nuevo dominio.
 - *Firma*: [Antigravity]
 
