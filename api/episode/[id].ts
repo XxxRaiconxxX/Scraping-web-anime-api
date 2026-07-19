@@ -48,6 +48,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         break
     }
 
+    if (servers && typeof servers === "object" && !Array.isArray(servers)) {
+      return ok(res, { source, episodeId: id, ...servers }, 120)
+    }
     return ok(res, { source, episodeId: id, servers }, 120)
   } catch (err: any) {
     console.error("[episode/servers]", err.message)

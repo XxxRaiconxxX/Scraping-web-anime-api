@@ -2,7 +2,7 @@ import axios from "axios"
 import * as cheerio from "cheerio"
 import { AXIOS_CONFIG } from "../utils"
 
-const BASE = "https://www3.animeflv.net"
+const BASE = "https://animeflv.or.at"
 
 // ─── Tipos ───────────────────────────────────────────────────────────────────
 export interface AnimeResult {
@@ -36,22 +36,26 @@ export interface AnimeInfo {
 
 // ─── Buscar anime ────────────────────────────────────────────────────────────
 export async function animeflvSearch(query: string): Promise<AnimeResult[]> {
-  const url = `${BASE}/browse?q=${encodeURIComponent(query)}`
+  const url = `${BASE}/?s=${encodeURIComponent(query)}`
   const { data } = await axios.get(url, AXIOS_CONFIG)
   const $ = cheerio.load(data)
   const results: AnimeResult[] = []
 
-  $(".ListAnimes li").each((_, el) => {
-    const href = $(el).find("a").attr("href") ?? ""
-    const id = href.replace("/anime/", "").trim()
+  $(".search-series-card").each((_, el) => {
+    const a = $(el).find("a.thumbnail-link")
+    const href = a.attr("href") ?? ""
+    const id = href.split("/anime/").pop()?.replace(/\/$/, "").trim() ?? ""
     if (!id) return
-    
+
+    const title = $(el).find(".entry-title").text().trim()
+    const image = $(el).find("img.anime-image").attr("src") ?? ""
+
     results.push({
       id,
-      title: $(el).find(".Title").text().trim(),
-      image: $(el).find("img").attr("src") ?? "",
-      type: $(el).find(".Type").text().trim(),
-      url: `${BASE}${href}`,
+      title,
+      image,
+      type: "Anime",
+      url: href,
     })
   })
 
@@ -60,45 +64,46 @@ export async function animeflvSearch(query: string): Promise<AnimeResult[]> {
 
 // ─── Info + lista de episodios ───────────────────────────────────────────────
 export async function animeflvInfo(animeId: string): Promise<AnimeInfo> {
-  const url = `${BASE}/anime/${animeId}`
+  const url = `${BASE}/anime/${animeId}/`
   const { data } = await axios.get(url, AXIOS_CONFIG)
   const $ = cheerio.load(data)
 
-  const title = $(".Ficha .Title").text().trim()
-  const image = `${BASE}${ $(".AnimeCover img").attr("src") ?? "" }`
-  const description = $(".Description p").text().trim()
+  const title = $(".anime-title").text().trim()
+  const image = $(".poster-image").attr("src") ?? ""
+  
+  // Obtener toda la sinopsis combinando los párrafos
+  const description = $(".anime-synopsis p").map((_, el) => $(el).text().trim()).get().join("\n\n").trim()
 
   const genres: string[] = []
-  $(".Nvgnrs a").each((_, el) => {
+  $(".genre-tag").each((_, el) => {
     genres.push($(el).text().trim())
   })
 
-  const status = $(".fa-tv").parent().text().trim()
-  const released = $(".AnmStts span").text().trim()
+  // Valores por defecto ya que no están presentes en el HTML del nuevo dominio
+  const status = "Disponible"
+  const released = "N/D"
 
-  // AnimeFLV carga los episodios via un script embebido
-  const scripts = $("script")
+  // Buscar episodios en el bloque de script JSON
+  const dataNode = $(".animeflv-episodes-data")
   let episodes: Episode[] = []
-
-  scripts.each((_, script) => {
-    const content = $(script).html() ?? ""
-    if (content.includes("var episodes =")) {
-      // Extraer el array de episodios usando regex simple
-      const epMatch = content.match(/var episodes = (\[.*\]);/)
-      const infoMatch = content.match(/var anime_info = (\[.*\]);/)
-      
-      if (epMatch && infoMatch) {
-        const epData = JSON.parse(epMatch[1])
-        const infoData = JSON.parse(infoMatch[1]) // [id, title, slug]
-        const animeSlug = infoData[2]
-
-        episodes = epData.map((ep: any) => ({
-          id: `${animeSlug}-${ep[0]}`,
-          number: ep[0].toString()
-        }))
-      }
+  if (dataNode.length) {
+    try {
+      const episodesData = JSON.parse(dataNode.text() || "[]")
+      episodes = episodesData.map((ep: any) => {
+        const permalink = ep.permalink ?? ""
+        // Hacemos que el ID del episodio sea la ruta relativa del permalink (ej: "2026/07/18/black-torch-episodio-3")
+        const id = permalink.replace(`${BASE}/`, "").replace(/\/$/, "").trim()
+        return {
+          id,
+          number: ep.number.toString()
+        }
+      })
+      // Ordenar episodios por número ascendente
+      episodes.sort((a, b) => Number(a.number) - Number(b.number))
+    } catch (e) {
+      console.error("[animeflvInfo] Error parsing episodes JSON:", e)
     }
-  })
+  }
 
   return {
     id: animeId,
@@ -112,38 +117,56 @@ export async function animeflvInfo(animeId: string): Promise<AnimeInfo> {
   }
 }
 
-// ─── Links de streaming ──────────────────────────────────────────────────────
-export async function animeflvServers(episodeId: string): Promise<Server[]> {
-  // episodeId suele ser "slug-numero"
-  const parts = episodeId.split("-")
-  const epNum = parts.pop()
-  const slug = parts.join("-")
-  
-  const url = `${BASE}/ver/${slug}-${epNum}`
+// ─── Links de streaming y descargas ──────────────────────────────────────────
+export async function animeflvServers(episodeId: string): Promise<{ stream: Server[], download: Server[] }> {
+  const url = `${BASE}/${episodeId}/`
   const { data } = await axios.get(url, AXIOS_CONFIG)
   const $ = cheerio.load(data)
   
-  const scripts = $("script")
-  let servers: Server[] = []
+  const stream: Server[] = []
+  const download: Server[] = []
 
-  scripts.each((_, script) => {
-    const content = $(script).html() ?? ""
-    if (content.includes("var videos =")) {
-      const videoMatch = content.match(/var videos = (\{.*\});/)
-      if (videoMatch) {
-        const videoData = JSON.parse(videoMatch[1])
-        // videoData tiene { "SUB": [ {server: '...', code: '...'}, ... ] }
-        if (videoData.SUB) {
-          servers = videoData.SUB.map((v: any) => ({
-            name: v.server,
-            link: v.code.includes("http") ? v.code : `https://www3.animeflv.net/video/${v.code}` 
-          }))
-        }
+  // 1. Obtener streams desde botones con clase .iframe_btn
+  $(".iframe_btn").each((_, el) => {
+    const rawSrc = $(el).attr("data-src") ?? ""
+    if (!rawSrc) return
+
+    let decoded = ""
+    try {
+      // Decodificar Base64 a string
+      decoded = Buffer.from(rawSrc, "base64").toString("utf-8")
+    } catch (e) {
+      decoded = rawSrc
+    }
+
+    // Nombre del servidor está en el elemento span hermano anterior
+    const serverName = $(el).siblings(".tooltip-text").text().trim() || "Servidor"
+
+    if (decoded) {
+      stream.push({
+        name: serverName,
+        link: decoded
+      })
+    }
+  })
+
+  // 2. Obtener descargas desde la tabla styled-table
+  $(".styled-table tbody tr").each((_, el) => {
+    const cols = $(el).find("td")
+    if (cols.length >= 4) {
+      const serverName = $(cols[0]).text().trim()
+      const downloadLink = $(cols[3]).find("a").attr("href") ?? ""
+      
+      if (downloadLink) {
+        download.push({
+          name: serverName,
+          link: downloadLink
+        })
       }
     }
   })
 
-  return servers
+  return { stream, download }
 }
 
 // ─── Episodios recientes ──────────────────────────────────────────────────────
@@ -153,18 +176,23 @@ export async function animeflvRecent() {
   const $ = cheerio.load(data)
   const results: any[] = []
 
-  $(".ListEpisodios li").each((_, el) => {
-    const href = $(el).find("a").attr("href") ?? ""
-    const idParts = href.replace("/ver/", "").split("-")
-    const epNum = idParts.pop()
-    const animeId = idParts.join("-")
+  $(".Episode").each((_, el) => {
+    const a = $(el).find("a")
+    const href = a.attr("href") ?? ""
+    const relPath = href.replace(`${BASE}/`, "").replace(/\/$/, "").trim()
+    
+    // Extraer animeSlug y epNum de la URL del episodio
+    const lastPart = relPath.split("/").pop() ?? ""
+    const parts = lastPart.split("-episodio-")
+    const epNum = parts.pop() || "1"
+    const animeId = parts.join("-episodio-") || lastPart.replace(/-episodio-\d+$/, "")
 
     results.push({
       id: animeId,
-      episodeId: href.replace("/ver/", ""),
+      episodeId: relPath,
       title: $(el).find(".Title").text().trim(),
       image: $(el).find("img").attr("src") ?? "",
-      episodeNumber: epNum,
+      episodeNumber: epNum
     })
   })
 
