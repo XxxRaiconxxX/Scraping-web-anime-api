@@ -23,7 +23,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     switch (source) {
       case "anichi":
-        servers = await anichiServers(id)
+        servers = await anichiServers(
+          id,
+          typeof req.query.series === "string" ? req.query.series : undefined,
+          typeof req.query.episode === "string" ? req.query.episode : undefined
+        )
         break
       case "gogoanime":
         servers = await gogoanimeServers(id)

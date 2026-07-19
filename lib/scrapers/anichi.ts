@@ -222,9 +222,22 @@ export async function anichiInfo(animeId: string): Promise<AnimeInfo> {
   }
 }
 
-export async function anichiServers(episodeId: string): Promise<Server[]> {
+export async function anichiServers(
+  episodeId: string,
+  series?: string,
+  episode?: string
+): Promise<Server[]> {
   const ids = episodeId.trim()
   if (!ids || ids.length > 4096) throw new Error("ID de episodio AniChi invalido")
+
+  if (series && episode) {
+    return [
+      {
+        name: "Ver en AniChi (Reproductor Oficial)",
+        link: `${BASE}/watch/${encodeURIComponent(series)}?ep=${encodeURIComponent(episode)}`,
+      },
+    ]
+  }
 
   const { data: listPayload } = await axios.get<AjaxHtmlPayload>(`${BASE}/ajax/server/list`, {
     ...requestOptions(),
