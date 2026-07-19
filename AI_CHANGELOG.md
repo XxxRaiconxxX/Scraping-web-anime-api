@@ -8,6 +8,7 @@ Historial de cambios realizados por agentes de IA en este repositorio.
 - **feat**: Soporte para la extracción nativa tanto de servidores de streaming (decodificados desde Base64 `data-src` en `.iframe_btn`) como de enlaces de descarga directa (de la tabla de descargas).
 - **feat**: Actualización del endpoint `api/episode/[id].ts` para admitir de forma nativa y retrocompatible objetos estructurados con propiedades `stream` y `download`.
 - **fix**: Corrección en `animeflvSearch` implementando búsqueda a través del WP REST API `/wp-json/wp/v2/categories` e iteración paralela de raspado de portadas. Esto resuelve la indexación de búsqueda rota del frontend (`?s=`) del nuevo dominio, permitiendo buscar series del catálogo como `clevatess` o `mushoku` de forma instantánea.
+- **feat**: Integración del nuevo proveedor `animeflvone` (`https://vww.animeflv.one/`). Añadido el scraper `lib/scrapers/animeflvone.ts` y cableado en los endpoints de la API (`api/search.ts`, `api/anime/[id].ts`, `api/episode/[id].ts`, `api/recent.ts`). Soporta búsqueda, detalles de anime con lista de episodios desde variables JS globales, y obtención dinámica de opciones de video mediante emulación de peticiones POST a `/flv` con decodificación de strings hex, así como extracción de enlaces de descargas del atributo `data-dwn`.
 - **check**: Ejecución exitosa de pruebas automatizadas locales de búsqueda, detalle y servidores/descargas para "black torch" en vivo contra el nuevo dominio.
 - *Firma*: [Antigravity]
 

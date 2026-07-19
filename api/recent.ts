@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node"
 import { gogoanimeRecent } from "../lib/scrapers/gogoanime"
 import { animeflvRecent } from "../lib/scrapers/animeflv"
+import { animeflvoneRecent } from "../lib/scrapers/animeflvone"
 import { tioanimeRecent } from "../lib/scrapers/tioanime"
 import { ok, fail, handleCors, checkAuth } from "../lib/utils"
 
@@ -25,6 +26,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       case "tioanime":
       case "monoschinos":
         results = await tioanimeRecent()
+        break
+      case "animeflvone":
+        results = await animeflvoneRecent()
         break
       case "animeflv":
       default:

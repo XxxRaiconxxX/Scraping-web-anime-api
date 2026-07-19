@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node"
 import { gogoanimeServers } from "../../lib/scrapers/gogoanime"
 import { animeflvServers } from "../../lib/scrapers/animeflv"
+import { animeflvoneServers } from "../../lib/scrapers/animeflvone"
 import { tioanimeServers } from "../../lib/scrapers/tioanime"
 import { veranimeonlineServers } from "../../lib/scrapers/veranimeonline"
 import { anichiServers } from "../../lib/scrapers/anichi"
@@ -41,6 +42,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       case "jkanime":
         const { jkanimeServers } = await import("../../lib/scrapers/jkanime")
         servers = await jkanimeServers(id)
+        break
+      case "animeflvone":
+        servers = await animeflvoneServers(id)
         break
       case "animeflv":
       default:
